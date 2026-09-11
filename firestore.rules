@@ -1,0 +1,47 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAdmin() {
+      return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+    
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isAdmin();
+      
+      match /players/{playerId} {
+        // Public can read the list of players to see attendance
+        allow read: if true;
+        // Anyone can create a player (registration)
+        allow create: if true;
+        // Anyone who knows the UUID can update it (since they need the document ID to update)
+        // But to prevent random updates from public if they guess the ID from the players list,
+        // we should enforce that the deviceToken in the update matches the existing one.
+        allow update: if isAdmin() || (request.resource.data.deviceToken == resource.data.deviceToken);
+        allow delete: if isAdmin();
+      }
+      
+      match /playerDetails/{playerId} {
+        // Only admin can list all private details
+        allow list: if isAdmin();
+        // Anonymous user can read/update their own if they have the un-guessable UUID
+        allow get: if true;
+        allow create: if true;
+        allow update: if isAdmin() || (request.resource.data.deviceToken == resource.data.deviceToken);
+        allow delete: if isAdmin();
+      }
+
+      match /teamResults/{resultId} {
+        allow read: if true; 
+        allow write: if isAdmin();
+      }
+    }
+  }
+}
