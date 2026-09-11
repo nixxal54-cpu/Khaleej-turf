@@ -4,7 +4,7 @@ import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth, db } from '../../firebase';
 import { useActiveEvent } from '../../hooks/useEvent';
 import { usePlayers } from '../../hooks/usePlayers';
-import { bootstrapDefaultEvent } from '../../lib/utils';
+import { bootstrapDefaultEvent, safeFormatDate } from '../../lib/utils';
 import { LogOut, RefreshCw, Trash2, Edit3, Image as ImageIcon, Copy, ArrowLeft } from 'lucide-react';
 import { doc, getDocs, collection, updateDoc, deleteDoc, addDoc, setDoc, getDoc } from 'firebase/firestore';
 import { PlayerPublic, PlayerPrivate, TeamResult } from '../../lib/types';
@@ -163,11 +163,11 @@ export default function AdminDashboard() {
 
   const copyWhatsappSheet = () => {
     if (!teams) return;
-    let text = `⚽ KHALEEJ TURF\n📅 ${event!.date ? format(parseISO(event!.date), 'MMM do') : ''}\n⏰ ${event!.startTime}–${event!.endTime}\n👥 ${teams.teamA.length + teams.teamB.length} PLAYERS\n\nTEAM A\n`;
-    teams.teamA.forEach((p, i) => text += `${i+1}. ${p.name}\n`);
+    let text = `⚽ KHALEEJ TURF\n📅 ${safeFormatDate(event!.date, 'MMM do')}\n⏰ ${event!.startTime}–${event!.endTime}\n👥 ${(teams.teamA?.length || 0) + (teams.teamB?.length || 0)} PLAYERS\n\nTEAM A\n`;
+    if (Array.isArray(teams.teamA)) teams.teamA.forEach((p, i) => text += `${i+1}. ${p.name}\n`);
     text += `\nTEAM B\n`;
-    teams.teamB.forEach((p, i) => text += `${i+1}. ${p.name}\n`);
-    if (teams.substitutes?.length > 0) {
+    if (Array.isArray(teams.teamB)) teams.teamB.forEach((p, i) => text += `${i+1}. ${p.name}\n`);
+    if (Array.isArray(teams.substitutes) && teams.substitutes.length > 0) {
       text += `\nSUBSTITUTES\n`;
       teams.substitutes.forEach((p, i) => text += `${i+1}. ${p.name}\n`);
     }
@@ -304,7 +304,7 @@ export default function AdminDashboard() {
                 <div id="team-sheet" className="p-6 bg-white border-2 border-slate-100 rounded-2xl relative overflow-hidden">
                   <div className="text-center mb-6">
                     <h3 className="text-2xl font-black tracking-tight">KHALEEJ ⚽</h3>
-                    <p className="text-slate-500 font-medium">{event.date ? format(parseISO(event.date), 'MMM do, yyyy') : ''} • {event.startTime}–{event.endTime}</p>
+                    <p className="text-slate-500 font-medium">{safeFormatDate(event.date, 'MMM do, yyyy')} • {event.startTime}–{event.endTime}</p>
                     <span className={clsx("inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold", teams.type === 'final' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}>
                       {teams.type === 'final' ? 'FINAL MATCH SHEET' : 'EARLY DRAFT'}
                     </span>
@@ -314,20 +314,20 @@ export default function AdminDashboard() {
                     <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                       <h4 className="font-bold text-center text-lg mb-4 text-slate-800 border-b pb-2">TEAM A</h4>
                       <ul className="space-y-2">
-                        {teams.teamA?.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-2"><span className="text-slate-400 w-4">{i+1}.</span> {p.name}</li>)}
+                        {Array.isArray(teams.teamA) ? teams.teamA.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-2"><span className="text-slate-400 w-4">{i+1}.</span> {p.name}</li>) : <li className="text-red-500 text-sm">Invalid team format</li>}
                       </ul>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                       <h4 className="font-bold text-center text-lg mb-4 text-slate-800 border-b pb-2">TEAM B</h4>
                       <ul className="space-y-2">
-                        {teams.teamB?.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-2"><span className="text-slate-400 w-4">{i+1}.</span> {p.name}</li>)}
+                        {Array.isArray(teams.teamB) ? teams.teamB.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-2"><span className="text-slate-400 w-4">{i+1}.</span> {p.name}</li>) : <li className="text-red-500 text-sm">Invalid team format</li>}
                       </ul>
                     </div>
                   </div>
                   {teams.substitutes?.length > 0 && (
                      <div className="mt-4 bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
                        <h4 className="font-bold text-sm text-slate-500 mb-2">SUBSTITUTES</h4>
-                       <p className="font-medium text-slate-700">{teams.substitutes?.map(p=>p.name).join(', ')}</p>
+                       <p className="font-medium text-slate-700">{Array.isArray(teams.substitutes) ? teams.substitutes.map(p=>p.name).join(', ') : ''}</p>
                      </div>
                   )}
                   <div className="mt-6 text-center text-xs text-slate-400 font-medium">Balanced by Groq AI</div>

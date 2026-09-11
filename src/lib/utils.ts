@@ -1,7 +1,17 @@
-import { addDays, setHours, setMinutes, formatISO } from 'date-fns';
+import { addDays, setHours, setMinutes, formatISO, parseISO, format, isValid } from 'date-fns';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { EventConfig } from './types';
+
+export function safeFormatDate(dateString?: string, formatStr: string = 'MMM do, yyyy') {
+  if (!dateString) return '';
+  try {
+    const d = parseISO(dateString);
+    return isValid(d) ? format(d, formatStr) : dateString;
+  } catch (e) {
+    return dateString;
+  }
+}
 
 export async function bootstrapDefaultEvent() {
   const tomorrow = addDays(new Date(), 1);
