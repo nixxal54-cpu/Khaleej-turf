@@ -11,6 +11,7 @@ import { PlayerPublic, PlayerPrivate, TeamResult } from '../../lib/types';
 import { format, parseISO } from 'date-fns';
 import { toPng } from 'html-to-image';
 import { Link } from 'react-router-dom';
+import clsx from 'clsx';
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading: authLoading, logout } = useAuth();
