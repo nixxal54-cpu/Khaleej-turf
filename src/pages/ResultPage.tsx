@@ -58,7 +58,7 @@ export default function ResultPage() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm relative overflow-hidden">
           <div className="text-center mb-6">
             <h3 className="text-3xl font-black tracking-tight text-slate-900">KHALEEJ ⚽</h3>
-            <p className="text-slate-500 font-medium mt-1">{format(parseISO(event.date), 'MMM do, yyyy')} • {event.startTime}–{event.endTime}</p>
+            <p className="text-slate-500 font-medium mt-1">{event.date ? format(parseISO(event.date), 'MMM do, yyyy') : ''} • {event.startTime}–{event.endTime}</p>
             <span className={clsx("inline-block mt-3 px-3 py-1 rounded-full text-xs font-bold", result.type === 'final' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}>
               {result.type === 'final' ? 'FINAL MATCH SHEET' : 'EARLY DRAFT'}
             </span>

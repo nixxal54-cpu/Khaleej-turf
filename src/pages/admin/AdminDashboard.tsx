@@ -163,7 +163,7 @@ export default function AdminDashboard() {
 
   const copyWhatsappSheet = () => {
     if (!teams) return;
-    let text = `⚽ KHALEEJ TURF\n📅 ${format(parseISO(event!.date), 'MMM do')}\n⏰ ${event!.startTime}–${event!.endTime}\n👥 ${teams.teamA.length + teams.teamB.length} PLAYERS\n\nTEAM A\n`;
+    let text = `⚽ KHALEEJ TURF\n📅 ${event!.date ? format(parseISO(event!.date), 'MMM do') : ''}\n⏰ ${event!.startTime}–${event!.endTime}\n👥 ${teams.teamA.length + teams.teamB.length} PLAYERS\n\nTEAM A\n`;
     teams.teamA.forEach((p, i) => text += `${i+1}. ${p.name}\n`);
     text += `\nTEAM B\n`;
     teams.teamB.forEach((p, i) => text += `${i+1}. ${p.name}\n`);
@@ -275,12 +275,12 @@ export default function AdminDashboard() {
                      alert('Event updated');
                   }}>
                      <div><label className="block text-xs font-medium text-slate-500 mb-1">Turf Name</label><input name="name" defaultValue={event.name} className="w-full border border-slate-200 p-2 rounded-lg" required /></div>
-                     <div><label className="block text-xs font-medium text-slate-500 mb-1">Date</label><input name="date" type="date" defaultValue={event.date.substring(0,10)} className="w-full border border-slate-200 p-2 rounded-lg" required /></div>
+                     <div><label className="block text-xs font-medium text-slate-500 mb-1">Date</label><input name="date" type="date" defaultValue={event.date?.substring(0,10)} className="w-full border border-slate-200 p-2 rounded-lg" required /></div>
                      <div><label className="block text-xs font-medium text-slate-500 mb-1">Start Time</label><input name="startTime" type="time" defaultValue={event.startTime} className="w-full border border-slate-200 p-2 rounded-lg" required /></div>
                      <div><label className="block text-xs font-medium text-slate-500 mb-1">End Time</label><input name="endTime" type="time" defaultValue={event.endTime} className="w-full border border-slate-200 p-2 rounded-lg" required /></div>
                      <div><label className="block text-xs font-medium text-slate-500 mb-1">Min Players</label><input name="minPlayers" type="number" defaultValue={event.minPlayers} className="w-full border border-slate-200 p-2 rounded-lg" required /></div>
                      <div><label className="block text-xs font-medium text-slate-500 mb-1">Max Players</label><input name="maxPlayers" type="number" defaultValue={event.maxPlayers} className="w-full border border-slate-200 p-2 rounded-lg" required /></div>
-                     <div className="sm:col-span-2"><label className="block text-xs font-medium text-slate-500 mb-1">Voting Deadline (ISO String)</label><input name="votingDeadline" type="datetime-local" defaultValue={event.votingDeadline.substring(0,16)} className="w-full border border-slate-200 p-2 rounded-lg" required /></div>
+                     <div className="sm:col-span-2"><label className="block text-xs font-medium text-slate-500 mb-1">Voting Deadline (ISO String)</label><input name="votingDeadline" type="datetime-local" defaultValue={event.votingDeadline?.substring(0,16)} className="w-full border border-slate-200 p-2 rounded-lg" required /></div>
                      <div className="sm:col-span-2 text-right"><button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-lg font-medium text-sm">Save Changes</button></div>
                   </form>
                </details>
@@ -304,7 +304,7 @@ export default function AdminDashboard() {
                 <div id="team-sheet" className="p-6 bg-white border-2 border-slate-100 rounded-2xl relative overflow-hidden">
                   <div className="text-center mb-6">
                     <h3 className="text-2xl font-black tracking-tight">KHALEEJ ⚽</h3>
-                    <p className="text-slate-500 font-medium">{format(parseISO(event.date), 'MMM do, yyyy')} • {event.startTime}–{event.endTime}</p>
+                    <p className="text-slate-500 font-medium">{event.date ? format(parseISO(event.date), 'MMM do, yyyy') : ''} • {event.startTime}–{event.endTime}</p>
                     <span className={clsx("inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold", teams.type === 'final' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}>
                       {teams.type === 'final' ? 'FINAL MATCH SHEET' : 'EARLY DRAFT'}
                     </span>
@@ -361,7 +361,7 @@ export default function AdminDashboard() {
                               p.response === 'coming' ? 'bg-emerald-100 text-emerald-700' : 
                               p.response === 'maybe' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
                             )}>
-                              {p.response.replace('_', ' ')}
+                              {p.response?.replace('_', ' ') || 'Unknown'}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-slate-600">{priv.primaryPosition || '-'}</td>

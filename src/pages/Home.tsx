@@ -27,7 +27,7 @@ export default function Home() {
     
     // Assume event.votingDeadline is a time string like "17:00" for the event date.
     // Wait, let's just make votingDeadline a full ISO string for ease of logic.
-    const deadlineTime = parseISO(event.votingDeadline);
+    const deadlineTime = event.votingDeadline ? parseISO(event.votingDeadline) : new Date();
     
     const timer = setInterval(() => {
       const now = new Date();
