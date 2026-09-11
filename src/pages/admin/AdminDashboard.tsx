@@ -71,15 +71,15 @@ export default function AdminDashboard() {
     }
   }, [isAdmin, event]);
 
-  const generateTeams = async (isEarly: boolean) => {
+  const generateTeams = async (type: 'final' | 'early' | 'test') => {
     if (!event) return;
     const confirmedPlayers = players.filter(p => p.response === 'coming');
-    if (confirmedPlayers.length < event.minPlayers && !isEarly) {
+    if (confirmedPlayers.length < event.minPlayers && type === 'final') {
       alert(`Cannot generate teams: Need at least ${event.minPlayers} players.`);
       return;
     }
     
-    if (isEarly && !window.confirm("Generate early draft teams? Players may still join.")) return;
+    if (type === 'early' && !window.confirm("Generate early draft teams? Players may still join.")) return;
 
     setIsGenerating(true);
     try {
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
 
       const resultData: TeamResult = {
         eventId: event.id!,
-        type: isEarly ? 'early' : 'final',
+        type: type === 'test' ? 'early' : type,
         teamA: generatedData.teamA || [],
         teamB: generatedData.teamB || [],
         substitutes: generatedData.substitutes || [],
@@ -131,8 +131,32 @@ export default function AdminDashboard() {
         status: 'active'
       };
 
-      const docRef = await addDoc(collection(db, `events/${event.id}/teamResults`), resultData);
-      setTeams({ id: docRef.id, ...resultData });
+      if (type === 'test') {
+        setTeams({ id: 'test_id', ...resultData });
+        alert("Test generation complete. Result will disappear in 30 seconds.");
+        setTimeout(() => {
+          setTeams(prev => {
+            if (prev?.id === 'test_id') {
+              const fetchTeams = async () => {
+                const snap = await getDocs(collection(db, `events/${event.id}/teamResults`));
+                const results = snap.docs.map(d => ({ id: d.id, ...d.data() } as TeamResult));
+                if (results.length > 0) {
+                  const active = results.find(r => r.status === 'active') || results[0];
+                  setTeams(active);
+                } else {
+                  setTeams(null);
+                }
+              };
+              fetchTeams();
+              return null;
+            }
+            return prev;
+          });
+        }, 30000);
+      } else {
+        const docRef = await addDoc(collection(db, `events/${event.id}/teamResults`), resultData);
+        setTeams({ id: docRef.id, ...resultData });
+      }
 
     } catch (err: any) {
       alert(err.message);
@@ -244,14 +268,17 @@ export default function AdminDashboard() {
               </div>
               <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-sm flex flex-col justify-center items-center">
                 <button 
-                  onClick={() => generateTeams(false)} 
+                  onClick={() => generateTeams('final')} 
                   disabled={isGenerating || players.filter(p=>p.response==='coming').length < event.minPlayers}
                   className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
                 >
                   <RefreshCw size={18} className={isGenerating ? 'animate-spin' : ''} />
                   🤖 Generate Final Teams
                 </button>
-                <button onClick={() => generateTeams(true)} disabled={isGenerating} className="text-xs text-slate-400 mt-2 underline">Generate Early Draft</button>
+                <div className="flex gap-4 mt-3">
+                  <button onClick={() => generateTeams('early')} disabled={isGenerating} className="text-xs text-slate-400 underline hover:text-slate-300">Generate Early Draft</button>
+                  <button onClick={() => generateTeams('test')} disabled={isGenerating} className="text-xs text-amber-400 underline hover:text-amber-300">Test AI Generator</button>
+                </div>
               </div>
             </div>
 

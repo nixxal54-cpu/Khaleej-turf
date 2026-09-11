@@ -44,7 +44,7 @@ export interface TeamPlayer {
 export interface TeamResult {
   id?: string;
   eventId: string;
-  type: 'early' | 'final';
+  type: 'early' | 'final' | 'test';
   teamA: TeamPlayer[];
   teamB: TeamPlayer[];
   substitutes: TeamPlayer[];
