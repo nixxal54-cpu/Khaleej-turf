@@ -12,7 +12,6 @@ export function useActiveEvent() {
   useEffect(() => {
     const q = query(
       collection(db, 'events'),
-      where('status', 'in', ['open', 'closed']),
       orderBy('date', 'desc'),
       limit(1)
     );

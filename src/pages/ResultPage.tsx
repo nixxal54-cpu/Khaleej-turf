@@ -68,7 +68,7 @@ export default function ResultPage() {
             <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
               <h4 className="font-bold text-center text-lg mb-4 text-slate-800 border-b border-slate-200 pb-2">TEAM A</h4>
               <ul className="space-y-3">
-                {result.teamA.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-3 text-lg"><span className="text-slate-400 w-5">{i+1}.</span> {p.name}</li>)}
+                {result.teamA?.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-3 text-lg"><span className="text-slate-400 w-5">{i+1}.</span> {p.name}</li>)}
               </ul>
             </div>
             
@@ -77,7 +77,7 @@ export default function ResultPage() {
             <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
               <h4 className="font-bold text-center text-lg mb-4 text-slate-800 border-b border-slate-200 pb-2">TEAM B</h4>
               <ul className="space-y-3">
-                {result.teamB.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-3 text-lg"><span className="text-slate-400 w-5">{i+1}.</span> {p.name}</li>)}
+                {result.teamB?.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-3 text-lg"><span className="text-slate-400 w-5">{i+1}.</span> {p.name}</li>)}
               </ul>
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function ResultPage() {
           {result.substitutes?.length > 0 && (
              <div className="mt-6 bg-slate-50 rounded-2xl p-5 border border-slate-100 text-center">
                <h4 className="font-bold text-sm text-slate-500 mb-2 tracking-wider">SUBSTITUTES</h4>
-               <p className="font-medium text-slate-700 text-lg">{result.substitutes.map(p=>p.name).join(', ')}</p>
+               <p className="font-medium text-slate-700 text-lg">{result.substitutes?.map(p=>p.name).join(', ')}</p>
              </div>
           )}
           <div className="mt-8 text-center text-sm text-slate-400 font-medium">Balanced by Groq AI</div>

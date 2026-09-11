@@ -314,20 +314,20 @@ export default function AdminDashboard() {
                     <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                       <h4 className="font-bold text-center text-lg mb-4 text-slate-800 border-b pb-2">TEAM A</h4>
                       <ul className="space-y-2">
-                        {teams.teamA.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-2"><span className="text-slate-400 w-4">{i+1}.</span> {p.name}</li>)}
+                        {teams.teamA?.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-2"><span className="text-slate-400 w-4">{i+1}.</span> {p.name}</li>)}
                       </ul>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                       <h4 className="font-bold text-center text-lg mb-4 text-slate-800 border-b pb-2">TEAM B</h4>
                       <ul className="space-y-2">
-                        {teams.teamB.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-2"><span className="text-slate-400 w-4">{i+1}.</span> {p.name}</li>)}
+                        {teams.teamB?.map((p,i) => <li key={p.id} className="font-medium text-slate-700 flex gap-2"><span className="text-slate-400 w-4">{i+1}.</span> {p.name}</li>)}
                       </ul>
                     </div>
                   </div>
                   {teams.substitutes?.length > 0 && (
                      <div className="mt-4 bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
                        <h4 className="font-bold text-sm text-slate-500 mb-2">SUBSTITUTES</h4>
-                       <p className="font-medium text-slate-700">{teams.substitutes.map(p=>p.name).join(', ')}</p>
+                       <p className="font-medium text-slate-700">{teams.substitutes?.map(p=>p.name).join(', ')}</p>
                      </div>
                   )}
                   <div className="mt-6 text-center text-xs text-slate-400 font-medium">Balanced by Groq AI</div>
