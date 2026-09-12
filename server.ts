@@ -44,8 +44,7 @@ try {
 }
 
 const groq = new Groq({ 
-  apiKey: process.env.GROQ_API_KEY || 'dummy_key',
-  baseURL: process.env.GROQ_BASE_URL || process.env.OPENAI_BASE_URL || undefined
+  apiKey: process.env.GROQ_API_KEY || 'dummy_key'
 });
 
 // Middleware to verify Firebase Auth Token

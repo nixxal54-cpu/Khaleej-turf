@@ -1,18 +1,16 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import admin from 'firebase-admin';
 import Groq from 'groq-sdk';
-import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase Admin
 try {
-  admin.initializeApp({ projectId: firebaseConfig.projectId });
+  admin.initializeApp({ projectId: 'turf-14543' });
 } catch (e) {
   // Already initialized
 }
 
 const groq = new Groq({ 
-  apiKey: process.env.GROQ_API_KEY || 'dummy_key',
-  baseURL: process.env.GROQ_BASE_URL || process.env.OPENAI_BASE_URL || undefined
+  apiKey: process.env.GROQ_API_KEY || 'dummy_key'
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

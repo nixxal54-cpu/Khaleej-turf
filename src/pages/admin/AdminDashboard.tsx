@@ -5,7 +5,7 @@ import { auth, db } from '../../firebase';
 import { useActiveEvent } from '../../hooks/useEvent';
 import { usePlayers } from '../../hooks/usePlayers';
 import { bootstrapDefaultEvent, safeFormatDate } from '../../lib/utils';
-import { LogOut, RefreshCw, Trash2, Edit3, Image as ImageIcon, Copy, ArrowLeft } from 'lucide-react';
+import { LogOut, RefreshCw, Trash2, Edit3, Image as ImageIcon, Copy, ArrowLeft, Share2 } from 'lucide-react';
 import { doc, getDocs, collection, updateDoc, deleteDoc, addDoc, setDoc, getDoc } from 'firebase/firestore';
 import { PlayerPublic, PlayerPrivate, TeamResult } from '../../lib/types';
 import { format, parseISO } from 'date-fns';
@@ -114,8 +114,17 @@ export default function AdminDashboard() {
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to generate');
+        let err;
+        const text = await res.text();
+        try {
+          err = JSON.parse(text);
+          throw new Error(err.error || 'Failed to generate');
+        } catch (e) {
+          if (e.message !== 'Failed to generate') {
+             throw new Error('Server returned HTML or invalid JSON. Status: ' + res.status + '. Body: ' + text.substring(0, 100));
+          }
+          throw e;
+        }
       }
 
       const generatedData = await res.json();
@@ -186,6 +195,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const saveRosterAsImage = async () => {
+    const el = document.getElementById('roster-sheet');
+    if (!el) return;
+    try {
+      const dataUrl = await toPng(el, { 
+        quality: 0.95, 
+        backgroundColor: '#ffffff',
+        filter: (node) => {
+          if (node instanceof Element) {
+            return !node.classList.contains('hide-on-export');
+          }
+          return true;
+        }
+      });
+      const link = document.createElement('a');
+      link.download = `khaleej-roster-${format(new Date(), 'yyyy-MM-dd')}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to generate image.');
+    }
+  };
+
   const copyWhatsappSheet = () => {
     if (!teams) return;
     let text = `⚽ KHALEEJ TURF\n📅 ${safeFormatDate(event!.date, 'MMM do')}\n⏰ ${event!.startTime}–${event!.endTime}\n👥 ${(teams.teamA?.length || 0) + (teams.teamB?.length || 0)} PLAYERS\n\nTEAM A\n`;
@@ -198,6 +231,25 @@ export default function AdminDashboard() {
     }
     navigator.clipboard.writeText(text);
     alert('Copied to clipboard!');
+  };
+
+  const shareTeamsLink = async () => {
+    if (!teams) return;
+    const url = `${window.location.origin}/match/${teams.id}?eventId=${event!.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Khaleej Turf Teams',
+          text: `Check out the teams for ${safeFormatDate(event!.date, 'MMM do')}`,
+          url: url
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    }
   };
 
   if (authLoading) return <div className="p-8 text-center">Loading...</div>;
@@ -321,11 +373,9 @@ export default function AdminDashboard() {
                     🤖 {teams.type === 'final' ? 'Final Teams' : 'Early Draft'}
                   </h2>
                   <div className="flex gap-2">
-                    <button onClick={saveAsImage} className="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 rounded-lg"><ImageIcon size={18}/></button>
-                    <button onClick={copyWhatsappSheet} className="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 rounded-lg"><Copy size={18}/></button>
-                    {teams.type === 'final' && (
-                       <Link to={`/match/${teams.id}?eventId=${event.id}`} target="_blank" className="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100">Public Link</Link>
-                    )}
+                    <button onClick={saveAsImage} title="Save Image" className="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 rounded-lg"><ImageIcon size={18}/></button>
+                    <button onClick={copyWhatsappSheet} title="Copy Text" className="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 rounded-lg"><Copy size={18}/></button>
+                    <button onClick={shareTeamsLink} title="Share Link" className="p-2 text-slate-500 hover:text-indigo-600 bg-indigo-50 rounded-lg"><Share2 size={18}/></button>
                   </div>
                 </div>
 
@@ -363,9 +413,14 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-                <h3 className="font-bold text-slate-800">Player Roster</h3>
+            <div id="roster-sheet" className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 className="font-bold text-slate-800">
+                  Player Roster <span className="text-sm font-normal text-slate-500 ml-2">({players.filter(p => p.response === 'coming').length} Confirmed)</span>
+                </h3>
+                <button onClick={saveRosterAsImage} title="Download Roster" className="hide-on-export p-2 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 shadow-sm rounded-lg flex items-center gap-2 text-sm font-medium">
+                  <ImageIcon size={16}/> <span className="hidden sm:inline">Save Image</span>
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -375,7 +430,7 @@ export default function AdminDashboard() {
                       <th className="px-6 py-3 font-medium">Status</th>
                       <th className="px-6 py-3 font-medium">Position</th>
                       <th className="px-6 py-3 font-medium">Level</th>
-                      <th className="px-6 py-3 font-medium text-right">Actions</th>
+                      <th className="hide-on-export px-6 py-3 font-medium text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -394,7 +449,7 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-6 py-4 text-slate-600">{priv.primaryPosition || '-'}</td>
                           <td className="px-6 py-4 text-slate-600">{priv.footballLevel || '-'}</td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="hide-on-export px-6 py-4 text-right">
                             <button onClick={() => removePlayer(p.id!)} className="text-slate-400 hover:text-rose-500 transition-colors p-2 rounded-lg hover:bg-rose-50"><Trash2 size={16}/></button>
                           </td>
                         </tr>
