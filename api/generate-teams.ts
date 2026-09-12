@@ -79,8 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         { role: 'user', content: userPrompt }
       ],
       model: 'openai/gpt-oss-120b',
-      temperature: 0.4,
-      response_format: { type: "json_object" }
+      temperature: 0.4
     });
 
     const responseContent = chatCompletion.choices[0]?.message?.content;
@@ -89,7 +88,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error("No content received from AI");
     }
     
-    const parsedData = JSON.parse(responseContent);
+    let cleanedContent = responseContent;
+    const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedContent = jsonMatch[0];
+    }
+    
+    const parsedData = JSON.parse(cleanedContent);
     
     // Server-side validation and self-healing of AI output
     const inputPlayers = new Map(players.map((p: any) => [p.id, p]));
