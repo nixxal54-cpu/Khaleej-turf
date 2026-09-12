@@ -74,8 +74,8 @@ export default function AdminDashboard() {
   const generateTeams = async (type: 'final' | 'early' | 'test') => {
     if (!event) return;
     const confirmedPlayers = players.filter(p => p.response === 'coming');
-    if (confirmedPlayers.length < event.minPlayers && type === 'final') {
-      alert(`Cannot generate teams: Need at least ${event.minPlayers} players.`);
+    if (confirmedPlayers.length < 2 && type === 'final') {
+      alert(`Cannot generate teams: Need at least 2 players to form teams.`);
       return;
     }
     
