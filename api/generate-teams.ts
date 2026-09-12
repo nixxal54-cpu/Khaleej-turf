@@ -82,9 +82,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       temperature: 0.4
     });
 
-    const responseContent = chatCompletion.choices[0]?.message?.content;
+    const message = chatCompletion.choices[0]?.message;
+    const responseContent = message?.content || (message as any)?.reasoning;
     
     if (!responseContent) {
+      console.error("DEBUG: Empty content received. chatCompletion:", JSON.stringify(chatCompletion, null, 2));
       throw new Error("No content received from AI");
     }
     
