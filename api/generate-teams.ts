@@ -1,28 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import admin from 'firebase-admin';
 import Groq from 'groq-sdk';
-import fs from 'fs';
-import path from 'path';
+import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase Admin
-let projectId = 'demo-project';
 try {
-  const firebaseConfigPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
-  if (fs.existsSync(firebaseConfigPath)) {
-    const config = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-    projectId = config.projectId;
-  }
-} catch (e) {
-  console.error("Could not read Firebase project ID", e);
-}
-
-try {
-  admin.initializeApp({ projectId });
+  admin.initializeApp({ projectId: firebaseConfig.projectId });
 } catch (e) {
   // Already initialized
 }
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || 'dummy_key' });
+const groq = new Groq({ 
+  apiKey: process.env.GROQ_API_KEY || 'dummy_key',
+  baseURL: process.env.GROQ_BASE_URL || process.env.OPENAI_BASE_URL || undefined
+});
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS handling for Vercel
@@ -48,9 +39,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const token = authHeader.split('Bearer ')[1];
   try {
     await admin.auth().verifyIdToken(token);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error verifying Firebase ID token:', error);
-    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    return res.status(401).json({ error: 'Unauthorized: Invalid token. Details: ' + (error.message || '') });
   }
 
   try {

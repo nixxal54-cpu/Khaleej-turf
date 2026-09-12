@@ -26,7 +26,7 @@ app.use(express.json());
 // Wait, the easiest way to secure this in a serverless setup when the user hasn't provided a full Service Account is to just use a custom SECRET_KEY for admin actions, or use Firebase ID Token verification (which doesn't actually require a Service Account if we only verify ID tokens and have the Project ID!).
 // Yes! admin.initializeApp({ projectId: '...' }) is enough to verify ID tokens!
 import fs from 'fs';
-let projectId = 'demo-project';
+let projectId = 'turf-14543'; // Hardcode fallback for robust checking
 try {
   const firebaseConfigPath = path.resolve(__dirname, 'firebase-applet-config.json');
   if (fs.existsSync(firebaseConfigPath)) {
@@ -43,7 +43,10 @@ try {
   console.log("Firebase Admin already initialized or error");
 }
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || 'dummy_key' });
+const groq = new Groq({ 
+  apiKey: process.env.GROQ_API_KEY || 'dummy_key',
+  baseURL: process.env.GROQ_BASE_URL || process.env.OPENAI_BASE_URL || undefined
+});
 
 // Middleware to verify Firebase Auth Token
 const verifyToken = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -57,9 +60,9 @@ const verifyToken = async (req: express.Request, res: express.Response, next: ex
     const decodedToken = await admin.auth().verifyIdToken(token);
     (req as any).user = decodedToken;
     next();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error verifying Firebase ID token:', error);
-    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    return res.status(401).json({ error: 'Unauthorized: Invalid token. Details: ' + (error.message || '') });
   }
 };
 
