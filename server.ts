@@ -117,20 +117,28 @@ app.post('/api/generate-teams', verifyToken, async (req, res) => {
     
     const parsedData = JSON.parse(responseContent);
     
-    // Server-side validation of AI output
-    const allInputIds = players.map(p => p.id).sort();
-    const allOutputIds = [
-      ...(parsedData.teamA || []).map((p: any) => p.id),
-      ...(parsedData.teamB || []).map((p: any) => p.id),
-      ...(parsedData.substitutes || []).map((p: any) => p.id)
-    ].sort();
+    // Server-side validation and self-healing of AI output
+    const inputPlayers = new Map(players.map((p: any) => [p.id, p]));
     
-    if (JSON.stringify(allInputIds) !== JSON.stringify(allOutputIds)) {
-      console.error("AI Output mismatch", { input: allInputIds, output: allOutputIds });
-      return res.status(500).json({ error: 'AI generated invalid teams (player mismatch). Please try again.' });
+    const sanitizeTeam = (team: any[]) => {
+      if (!Array.isArray(team)) return [];
+      const valid = team.filter((p: any) => p && inputPlayers.has(p.id)).map((p: any) => inputPlayers.get(p.id));
+      valid.forEach((p: any) => inputPlayers.delete(p.id)); // mark as used
+      return valid;
+    };
+
+    const teamA = sanitizeTeam(parsedData.teamA);
+    const teamB = sanitizeTeam(parsedData.teamB);
+    const substitutes = sanitizeTeam(parsedData.substitutes);
+
+    // Any remaining players not placed by AI go to substitutes
+    const missingPlayers = Array.from(inputPlayers.values());
+    if (missingPlayers.length > 0) {
+      console.warn("AI missed some players. Auto-assigning to substitutes.");
+      substitutes.push(...missingPlayers);
     }
 
-    res.json(parsedData);
+    res.json({ teamA, teamB, substitutes });
 
   } catch (error: any) {
     console.error('Error generating teams:', error);
