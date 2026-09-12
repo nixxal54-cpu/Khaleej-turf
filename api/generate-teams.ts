@@ -48,15 +48,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Invalid or insufficient players provided. Need at least 2 players.' });
     }
 
-    const systemPrompt = `You are an expert AI football team balancer. Your task is to create balanced recreational football teams from the provided list of players.
+    const systemPrompt = `You are an expert AI football team manager and tactician. Your task is to create two HIGHLY COMPETITIVE, evenly balanced recreational football teams from the provided list of players.
     
     Rules:
     1. You must use EVERY player provided exactly once.
     2. Do NOT invent or hallucinate players.
     3. Balance the players evenly into two teams (teamA and teamB). Any extra players (e.g., if there is an odd number of players, or if the total exceeds standard team sizes) MUST be placed in the "substitutes" array.
-    4. Consider positions (balance forwards, midfielders, defenders, and goalkeepers).
-    5. Consider self-reported level and experience as approximate signals.
-    6. Balance attacking and defensive capabilities.
+    4. CRITICAL: Both teams must be EQUALLY POWERFUL. Distribute the top-tier players evenly so one team does not dominate the other.
+    5. CRITICAL: Balance positions. Ensure both teams have capable defenders, midfielders, and forwards.
+    6. Introduce tactical variety: explore different balanced combinations on each request to ensure fresh rosters.
     7. Return strict JSON ONLY. No markdown formatting outside of the JSON block, or just raw JSON.
     
     Expected JSON Output Format:
@@ -66,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       "substitutes": [ { "id": "player_id", "name": "Player Name" } ] // if applicable
     }`;
 
-    const userPrompt = `Please balance these ${players.length} players into two teams.
+    const userPrompt = `Please balance these ${players.length} players into two highly competitive teams.
     
     Players data:
     ${JSON.stringify(players, null, 2)}
@@ -79,7 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         { role: 'user', content: userPrompt }
       ],
       model: 'openai/gpt-oss-120b',
-      temperature: 0.1,
+      temperature: 0.7,
       response_format: { type: "json_object" }
     });
 
