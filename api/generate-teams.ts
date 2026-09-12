@@ -57,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     4. CRITICAL: Both teams must be EQUALLY POWERFUL. Distribute the top-tier players evenly so one team does not dominate the other.
     5. CRITICAL: Balance positions. Ensure both teams have capable defenders, midfielders, and forwards.
     6. Introduce tactical variety: explore different balanced combinations on each request to ensure fresh rosters.
-    7. Return strict JSON ONLY. No markdown formatting outside of the JSON block, or just raw JSON.
+    7. You MUST output ONLY valid JSON. Start your response with "{" and end it with "}". Do not include any markdown formatting, preamble, or explanation.
     
     Expected JSON Output Format:
     {
@@ -79,7 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         { role: 'user', content: userPrompt }
       ],
       model: 'openai/gpt-oss-120b',
-      temperature: 0.7,
+      temperature: 0.4,
       response_format: { type: "json_object" }
     });
 
